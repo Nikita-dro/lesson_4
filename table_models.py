@@ -13,7 +13,7 @@ class Customers(Model):
 class Tracks(Model):
     id = AutoField(primary_key=True)
     name = CharField()
-    duration = FloatField()
+    duration = IntegerField()
 
     class Meta:
         database = SqliteDatabase('Lesson_4.db')
