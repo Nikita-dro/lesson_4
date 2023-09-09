@@ -18,5 +18,16 @@ def names():
     return render_template("names.html", names=list_names)
 
 
+@app.get('/tracks/count')
+def count_tracks():
+    return f"The number of entries in the track table - {str(Tracks.select(fn.Max(Tracks.id)).scalar())}"
+
+
+@app.get('/tracks/duration')
+def tracks_duration():
+    list_info = [' - '.join((el.name, f"{el.duration} seconds")) for el in Tracks.select()]
+    return render_template("names.html", names=list_info)
+
+
 if __name__ == "__main__":
     app.run()
