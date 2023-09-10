@@ -1,6 +1,5 @@
-from peewee import *
 from table_models import *
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -16,6 +15,43 @@ if not Customers.select():
 def names():
     list_names = [el.first_name for el in Customers.select(Customers.first_name).distinct()]
     return render_template("names.html", names=list_names)
+
+
+def data_search(f_name=None, l_name=None) -> list:
+    if f_name is not None:
+        data = Customers.select().where(Customers.first_name == f_name.capitalize())
+    else:
+        data = Customers.select().where(Customers.last_name == l_name.capitalize())
+    list_info = []
+    for el in data:
+        list_info.append(f'Id - {el.id}, first_name - {el.first_name}, last_name - {el.last_name}')
+    return list_info
+
+
+@app.get('/customers/')
+def customer():
+    id_customer = request.args.get('id', type=int)
+    first_name = request.args.get('first_name', type=str)
+    last_name = request.args.get('last_name', type=str)
+    if id_customer or id_customer == 0:
+        if 0 < id_customer <= Customers.select(fn.Max(Customers.id)).scalar():
+            info = Customers.get(Customers.id == id_customer)
+            return f'Id - {info.id}, first_name - {info.first_name}, last_name - {info.last_name}'
+        else:
+            return 'There is no such id or it is less than zero'
+    elif first_name or last_name:
+        if first_name:
+            list_info = data_search(f_name=first_name)
+        else:
+            list_info = data_search(l_name=last_name)
+        if list_info:
+            return render_template("names.html", names=list_info)
+        else:
+            return "This name was not found in the database"
+    else:
+        list_all_customers = [(f'Id - {el.id}, first_name - {el.first_name}, '
+                               f'last_name - {el.last_name}') for el in Customers.select()]
+        return render_template("names.html", names=list_all_customers)
 
 
 @app.get('/tracks/count')
